@@ -5,6 +5,16 @@ export const tableColumns = {
       title: 'Country'
     },
     {
+      field: 'CountryCode',
+      title: 'Country Code',
+      hidden: true
+    },
+    {
+      field: 'Slug',
+      title: 'Slug',
+      hidden: true
+    },
+    {
       field: 'NewConfirmed',
       title: 'New Confirmed'
     },
@@ -27,6 +37,11 @@ export const tableColumns = {
     {
       field: 'TotalRecovered',
       title: 'Total Recovered'
+    },
+    {
+      field: 'Date',
+      title: 'Date',
+      hidden: true
     },
   ]
 }

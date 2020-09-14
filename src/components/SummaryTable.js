@@ -16,6 +16,7 @@ import SaveAlt from '@material-ui/icons/SaveAlt';
 import Search from '@material-ui/icons/Search';
 import ViewColumn from '@material-ui/icons/ViewColumn';
 import { tableColumns } from '../configuration/TableColumns';
+import CustomizedDialog from './CustomizedDialog';
 
 const tableIcons = {
   Add: forwardRef((props, ref) => <AddBox {...props} ref={ref} />),
@@ -38,20 +39,49 @@ const tableIcons = {
 };
 
 class SummaryTable extends React.Component {
+  constructor(props) {
+    super(props);
+    this.state = {
+      isOpenDialog: false,
+      detailData: {}
+    };
+  }
+
+  handleClickOpen = (rowData) => {
+    const { tableData, ...others } = rowData;
+    this.setState({ isOpenDialog: true, detailData: others });
+  };
+
+  handleClose = () => {
+    this.setState({ isOpenDialog: false });
+  };
+
   render() {
     const { summaryData } = this.props;
+    const { isOpenDialog, detailData } = this.state;
     return (
-      <MaterialTable
-        icons={tableIcons}
-        title="Covid 19 Information"
-        columns={tableColumns.summary}
-        data={summaryData}
-        options={{
-          search: true,
-          pageSize: 10
-        }}
-      />
+      <React.Fragment>
+        <MaterialTable
+          icons={tableIcons}
+          title="Covid 19 Information"
+          columns={tableColumns.summary}
+          data={summaryData}
+          options={{
+            search: true,
+            pageSize: 10
+          }}
+          onRowClick={(event, rowData) => {
+            this.handleClickOpen(rowData);
+          }}
+        />
+        <CustomizedDialog
+          isOpenDialog={isOpenDialog}
+          detailData={detailData}
+          handleClickOpen={this.handleClickOpen}
+          handleClose={this.handleClose}
+        />
+      </React.Fragment>
     );
   }
 }
-export default SummaryTable
+export default SummaryTable;
