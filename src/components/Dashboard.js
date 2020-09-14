@@ -1,6 +1,7 @@
-import React, { forwardRef } from 'react';
+import React from 'react';
 import clsx from 'clsx';
-import { makeStyles } from '@material-ui/core/styles';
+import _ from 'underscore';
+import { withStyles } from '@material-ui/core/styles';
 import CssBaseline from '@material-ui/core/CssBaseline';
 import AppBar from '@material-ui/core/AppBar';
 import Toolbar from '@material-ui/core/Toolbar';
@@ -11,26 +12,13 @@ import Container from '@material-ui/core/Container';
 import Grid from '@material-ui/core/Grid';
 import MenuIcon from '@material-ui/icons/Menu';
 import NotificationsIcon from '@material-ui/icons/Notifications';
-import MaterialTable from 'material-table';
-import AddBox from '@material-ui/icons/AddBox';
-import ArrowDownward from '@material-ui/icons/ArrowDownward';
-import Check from '@material-ui/icons/Check';
-import ChevronLeft from '@material-ui/icons/ChevronLeft';
-import ChevronRight from '@material-ui/icons/ChevronRight';
-import Clear from '@material-ui/icons/Clear';
-import DeleteOutline from '@material-ui/icons/DeleteOutline';
-import Edit from '@material-ui/icons/Edit';
-import FilterList from '@material-ui/icons/FilterList';
-import FirstPage from '@material-ui/icons/FirstPage';
-import LastPage from '@material-ui/icons/LastPage';
-import Remove from '@material-ui/icons/Remove';
-import SaveAlt from '@material-ui/icons/SaveAlt';
-import Search from '@material-ui/icons/Search';
-import ViewColumn from '@material-ui/icons/ViewColumn';
+import { getSummaryData } from '../actions/Actions';
+import { tableColumns } from '../configuration/TableColumns';
+import SummaryTable from './SummaryTable';
 
 const drawerWidth = 240;
 
-const useStyles = makeStyles((theme) => ({
+const styles = (theme) => ({
   root: {
     display: 'flex',
   },
@@ -71,126 +59,75 @@ const useStyles = makeStyles((theme) => ({
     paddingTop: theme.spacing(4),
     paddingBottom: theme.spacing(4),
   },
-}));
+});
 
-const tableIcons = {
-  Add: forwardRef((props, ref) => <AddBox {...props} ref={ref} />),
-  Check: forwardRef((props, ref) => <Check {...props} ref={ref} />),
-  Clear: forwardRef((props, ref) => <Clear {...props} ref={ref} />),
-  Delete: forwardRef((props, ref) => <DeleteOutline {...props} ref={ref} />),
-  DetailPanel: forwardRef((props, ref) => <ChevronRight {...props} ref={ref} />),
-  Edit: forwardRef((props, ref) => <Edit {...props} ref={ref} />),
-  Export: forwardRef((props, ref) => <SaveAlt {...props} ref={ref} />),
-  Filter: forwardRef((props, ref) => <FilterList {...props} ref={ref} />),
-  FirstPage: forwardRef((props, ref) => <FirstPage {...props} ref={ref} />),
-  LastPage: forwardRef((props, ref) => <LastPage {...props} ref={ref} />),
-  NextPage: forwardRef((props, ref) => <ChevronRight {...props} ref={ref} />),
-  PreviousPage: forwardRef((props, ref) => <ChevronLeft {...props} ref={ref} />),
-  ResetSearch: forwardRef((props, ref) => <Clear {...props} ref={ref} />),
-  Search: forwardRef((props, ref) => <Search {...props} ref={ref} />),
-  SortArrow: forwardRef((props, ref) => <ArrowDownward {...props} ref={ref} />),
-  ThirdStateCheck: forwardRef((props, ref) => <Remove {...props} ref={ref} />),
-  ViewColumn: forwardRef((props, ref) => <ViewColumn {...props} ref={ref} />)
-};
+class Dashboard extends React.Component {
+  constructor(props) {
+    super(props)
+    this.state = {
+      summaryData: []
+    }
+  }
+  componentDidMount() {
+    getSummaryData().then(response => {
+      if (response?.status === 200) {
+        this.analyzeData(response.data)
+      }
+    });
+  }
 
-export default function Dashboard() {
-  const classes = useStyles();
+  analyzeData = (rawData) => {
+    const arrayColumns = _.pluck(tableColumns.summary, 'field');
+    if (rawData && rawData.Countries) {
+      const summaryData = rawData.Countries.map((element) => {
+        const parsedObject = {}
+        arrayColumns.forEach(field => {
+          parsedObject[field] = element[field];
+        });
+        return parsedObject;
+      });
+      this.setState({ summaryData });
+    }
+  }
 
-  return (
-    <div className={classes.root}>
-      <CssBaseline />
-      <AppBar position="absolute" className={clsx(classes.appBar, false && classes.appBarShift)}>
-        <Toolbar className={classes.toolbar}>
-          <IconButton
-            edge="start"
-            color="inherit"
-            aria-label="open drawer"
-            className={clsx(classes.menuButton, false && classes.menuButtonHidden)}
-          >
-            <MenuIcon />
-          </IconButton>
-          <Typography component="h1" variant="h6" color="inherit" noWrap className={classes.title}>
-            Dashboard
+  render() {
+    const { classes } = this.props;
+    const { summaryData } = this.state;
+
+    return (
+      <div className={classes.root} >
+        <CssBaseline />
+        <AppBar position="absolute" className={clsx(classes.appBar, false && classes.appBarShift)}>
+          <Toolbar className={classes.toolbar}>
+            <IconButton
+              edge="start"
+              color="inherit"
+              aria-label="open drawer"
+              className={clsx(classes.menuButton, false && classes.menuButtonHidden)}
+            >
+              <MenuIcon />
+            </IconButton>
+            <Typography component="h1" variant="h6" color="inherit" noWrap className={classes.title}>
+              Dashboard
           </Typography>
-          <IconButton color="inherit">
-            <Badge badgeContent={4} color="secondary">
-              <NotificationsIcon />
-            </Badge>
-          </IconButton>
-        </Toolbar>
-      </AppBar>
-      <main className={classes.content}>
-        <div className={classes.appBarSpacer} />
-        <Container maxWidth="lg" className={classes.container}>
-          <Grid item xs={12}>
-            <MaterialTable
-              icons={tableIcons}
-              title="Basic Search Preview"
-              columns={[
-                { title: 'Name', field: 'name' },
-                { title: 'Surname', field: 'surname' },
-                { title: 'Birth Year', field: 'birthYear', type: 'numeric' },
-                {
-                  title: 'Birth Place',
-                  field: 'birthCity',
-                  lookup: { 34: 'İstanbul', 63: 'Şanlıurfa' },
-                },
-              ]}
-              data={[
-                { name: 'Mehmet', surname: 'Baran', birthYear: 1987, birthCity: 63 },
-                { name: 'Zerya Betül', surname: 'Baran', birthYear: 2017, birthCity: 34 },
-                { name: 'Zerya Betül', surname: 'Baran', birthYear: 2017, birthCity: 34 },
-                { name: 'Zerya Betül', surname: 'Baran', birthYear: 2017, birthCity: 34 },
-                { name: 'Zerya Betül', surname: 'Baran', birthYear: 2017, birthCity: 34 },
-                { name: 'Zerya Betül', surname: 'Baran', birthYear: 2017, birthCity: 34 },
-                { name: 'Zerya Betül', surname: 'Baran', birthYear: 2017, birthCity: 34 },
-                { name: 'Zerya Betül', surname: 'Baran', birthYear: 2017, birthCity: 34 },
-                { name: 'Zerya Betül', surname: 'Baran', birthYear: 2017, birthCity: 34 },
-                { name: 'Zerya Betül', surname: 'Baran', birthYear: 2017, birthCity: 34 },
-                { name: 'Zerya Betül', surname: 'Baran', birthYear: 2017, birthCity: 34 },
-                { name: 'Zerya Betül', surname: 'Baran', birthYear: 2017, birthCity: 34 },
-                { name: 'Zerya Betül', surname: 'Baran', birthYear: 2017, birthCity: 34 },
-                { name: 'Zerya Betül', surname: 'Baran', birthYear: 2017, birthCity: 34 },
-                { name: 'Zerya Betül', surname: 'Baran', birthYear: 2017, birthCity: 34 },
-                { name: 'Zerya Betül', surname: 'Baran', birthYear: 2017, birthCity: 34 },
-                { name: 'Zerya Betül', surname: 'Baran', birthYear: 2017, birthCity: 34 },
-                { name: 'Zerya Betül', surname: 'Baran', birthYear: 2017, birthCity: 34 },
-                { name: 'Zerya Betül', surname: 'Baran', birthYear: 2017, birthCity: 34 },
-                { name: 'Zerya Betül', surname: 'Baran', birthYear: 2017, birthCity: 34 },
-                { name: 'Zerya Betül', surname: 'Baran', birthYear: 2017, birthCity: 34 },
-                { name: 'Zerya Betül', surname: 'Baran', birthYear: 2017, birthCity: 34 },
-                { name: 'Zerya Betül', surname: 'Baran', birthYear: 2017, birthCity: 34 },
-                { name: 'Zerya Betül', surname: 'Baran', birthYear: 2017, birthCity: 34 },
-                { name: 'Zerya Betül', surname: 'Baran', birthYear: 2017, birthCity: 34 },
-                { name: 'Zerya Betül', surname: 'Baran', birthYear: 2017, birthCity: 34 },
-                { name: 'Zerya Betül', surname: 'Baran', birthYear: 2017, birthCity: 34 },
-                { name: 'Zerya Betül', surname: 'Baran', birthYear: 2017, birthCity: 34 },
-                { name: 'Zerya Betül', surname: 'Baran', birthYear: 2017, birthCity: 34 },
-                { name: 'Zerya Betül', surname: 'Baran', birthYear: 2017, birthCity: 34 },
-                { name: 'Zerya Betül', surname: 'Baran', birthYear: 2017, birthCity: 34 },
-                { name: 'Zerya Betül', surname: 'Baran', birthYear: 2017, birthCity: 34 },
-                { name: 'Zerya Betül', surname: 'Baran', birthYear: 2017, birthCity: 34 },
-                { name: 'Zerya Betül', surname: 'Baran', birthYear: 2017, birthCity: 34 },
-                { name: 'Zerya Betül', surname: 'Baran', birthYear: 2017, birthCity: 34 },
-                { name: 'Zerya Betül', surname: 'Baran', birthYear: 2017, birthCity: 34 },
-                { name: 'Zerya Betül', surname: 'Baran', birthYear: 2017, birthCity: 34 },
-                { name: 'Zerya Betül', surname: 'Baran', birthYear: 2017, birthCity: 34 },
-                { name: 'Zerya Betül', surname: 'Baran', birthYear: 2017, birthCity: 34 },
-                { name: 'Zerya Betül', surname: 'Baran', birthYear: 2017, birthCity: 34 },
-                { name: 'Zerya Betül', surname: 'Baran', birthYear: 2017, birthCity: 34 },
-                { name: 'Zerya Betül', surname: 'Baran', birthYear: 2017, birthCity: 34 },
-                { name: 'Zerya Betül', surname: 'Baran', birthYear: 2017, birthCity: 34 },
-                { name: 'Zerya Betül', surname: 'Baran', birthYear: 2017, birthCity: 34 },
-                { name: 'Zerya Betül', surname: 'Baran', birthYear: 2017, birthCity: 34 },
-              ]}
-              options={{
-                search: true,
-                pageSize: 10
-              }}
-            />
-          </Grid>
-        </Container>
-      </main>
-    </div>
-  );
+            <IconButton color="inherit">
+              <Badge badgeContent={4} color="secondary">
+                <NotificationsIcon />
+              </Badge>
+            </IconButton>
+          </Toolbar>
+        </AppBar>
+        <main className={classes.content}>
+          <div className={classes.appBarSpacer} />
+          <Container maxWidth="lg" className={classes.container}>
+            <Grid item xs={12}>
+              <SummaryTable summaryData={summaryData} />
+            </Grid>
+          </Container>
+        </main>
+      </div>
+    );
+  }
 }
+
+export default withStyles(styles)(Dashboard)

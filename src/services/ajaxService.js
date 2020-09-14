@@ -6,6 +6,8 @@ export const HttpMethod = {
 }
 
 const sendRequest = async (requestURL, method = "get", data, requestType = "json") => {
+  axios.defaults.baseURL = 'https://api.covid19api.com';
+
   return await axios({
     method: method,
     url: requestURL,
@@ -14,7 +16,7 @@ const sendRequest = async (requestURL, method = "get", data, requestType = "json
   }).then(res => {
     return res;
   }).catch(res => {
-    // Unhandled error.   
+    // Unhandled error
   }).finally(() => {
     // Finally
   });

@@ -14,3 +14,5 @@ export const loadConfig = () => Services.loadConfig().then(res => {
   }
   return res;
 });
+
+export const getSummaryData = () => Services.getSummaryData();
