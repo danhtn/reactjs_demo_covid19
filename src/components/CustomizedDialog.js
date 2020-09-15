@@ -59,9 +59,9 @@ const DialogActions = withStyles((theme) => ({
 class CustomizedDialog extends React.Component {
   render() {
     const { classes, detailData, isOpenDialog, handleClose } = this.props;
-    const contentElements = Object.keys(detailData).map((column) => {
+    const contentElements = Object.keys(detailData).map((column, index) => {
       return (
-        <React.Fragment>
+        <React.Fragment key={index}>
           <ListItem button>
             <ListItemText primary={`${column}: ${detailData[column]}`} />
           </ListItem>
